@@ -44,6 +44,8 @@ init({Incr, Parallels, OffsetList}) ->
 handle_cast(crawl,
             {Incr, Parallels, OffsetList, [PageID|Tail]}) ->
     crawler:start(PageID, Incr, Parallels),
+    io:format("~p~p: Crawled. ~p - ~p~n",
+              [date(), time(), PageID, PageID + Incr - 1]),
     case Tail of
         [] ->
             {noreply,
