@@ -1,0 +1,12 @@
+io:format("Loading ./.erlang\n").
+
+io:format("Starting mnesia.\n").
+mnesia:start().
+
+io:format("Starting inets.\n").
+inets:start().
+
+% io:format("Adding erl-creole library\n").
+% code:add_pathz("../erl-creole/ebin").
+
+io:format("Initalization complete.\n").
