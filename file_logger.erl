@@ -12,7 +12,7 @@ handle_event(Message, Fd) ->
     {Hour, Minute, Second} = time(),
     io:format(
       Fd,
-      "[~p/~p/~p ~p:~p:~p] ~s~n",
+      "[~4..0b/~2..0b/~2..0b ~2..0b:~2..0b:~2..0b] ~s~n",
       [Year, Month, Date,
        Hour, Minute, Second,
        Message]),
