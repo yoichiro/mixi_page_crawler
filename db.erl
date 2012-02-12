@@ -13,8 +13,8 @@
 -include("data.hrl").
 
 setup() ->
-    mnesia:start(),
     mnesia:create_schema([node()]),
+    mnesia:start(),
     case mnesia:create_table(
            page,
            [ {disc_copies, [node()]},
