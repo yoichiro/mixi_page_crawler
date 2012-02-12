@@ -1,7 +1,7 @@
 -module(crawl_scheduler).
 
 %% Exported for a client.
--export([start_server/3,
+-export([start_server/4,
          command/1]).
 
 %% Exported for the OTP.
@@ -11,7 +11,7 @@
          handle_cast/2]).
 
 %% Exported functions for a client.
-start_server(Incr, Max, Parallels) ->
+start_server(Incr, Max, Parallels, Interval) ->
     gen_event:start_link({global, logger}),
     gen_event:add_handler({global, logger}, file_logger, "crawler.log"),
     OffsetList = lists:seq(1, Max, Incr),
@@ -21,7 +21,7 @@ start_server(Incr, Max, Parallels) ->
       {Incr, Parallels, OffsetList},
       []),
     Command = spawn(?MODULE, command, [[]]),
-    Kicker = timer:send_interval(10000, Command, crawl),
+    Kicker = timer:send_interval(Interval * 1000, Command, crawl),
     Command ! {set_kicker, Kicker},
     io:format("Crawl server started.~n", []),
     {started, Command}.
