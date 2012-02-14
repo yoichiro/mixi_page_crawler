@@ -6,7 +6,8 @@ mnesia:start().
 io:format("Starting inets.\n").
 inets:start().
 
-% io:format("Adding erl-creole library\n").
+io:format("Adding libraries\n").
 % code:add_pathz("../erl-creole/ebin").
+code:add_pathz("./ebin").
 
 io:format("Initalization complete.\n").
