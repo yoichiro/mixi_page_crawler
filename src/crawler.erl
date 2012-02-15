@@ -3,9 +3,13 @@
          fetch/2]).
 
 start(PageID, Incr, Parallels) ->
+    logger:log("Starting crawler:start(), PageID=~p, Incr=~p, Parallels=~p",
+               [PageID, Incr, Parallels]),
     PageIDList = lists:seq(PageID, PageID + Incr - 1),
-    [PageID | _] = PageIDList,
-    crawl(PageIDList, 0, Parallels, Parallels).
+    crawl(PageIDList, 0, Parallels, Parallels),
+    logger:log("Finish crawler:start(), PageID=~p, Incr=~p, Parallels=~p",
+               [PageID, Incr, Parallels]),
+    ok.
 
 crawl([], Current, NextPos, Parallels) ->
     wait(Parallels - (NextPos - Current)),
@@ -21,18 +25,21 @@ wait(0) ->
     ok;
 wait(Count) ->
     receive
-        {crawled, _PageID} ->
-%            io:format("~p: crawled.~n", [PageID]),
+        {crawled, PageID} ->
+            logger:log("crawler:wait(~p) crawled. PageID=~p",
+                       [Count, PageID]),
             wait(Count - 1);
-        {skipped, _PageID} ->
-%            io:format("~p: skipped.~n", [PageID])
+        {skipped, PageID} ->
+            logger:log("crawler:wait(~p) skipped. PageID=~p",
+                       [Count, PageID]),
             wait(Count - 1)
     after 60000 ->
-            io:format("Timeout(~p).~n", [Count]),
+            logger:log("Timeout(~p).", [Count]),
             ok
     end.
 
 fetch(From, PageID) ->
+    logger:log("Starting crawler:fetch(~p, ~p)", [From, PageID]),
     case fetcher:fetch_page(PageID) of
         {PageInfo, Feeds} ->
             db:store_page(PageInfo),
@@ -40,5 +47,5 @@ fetch(From, PageID) ->
             From ! {crawled, PageID};
         skip ->
             From ! {skipped, PageID}
-    end.
-
+    end,
+    logger:log("Finish crawler:fetch(~p, ~p)", [From, PageID]).

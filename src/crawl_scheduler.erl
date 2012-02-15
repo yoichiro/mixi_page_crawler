@@ -12,8 +12,7 @@
 
 %% Exported functions for a client.
 start_server(Incr, Max, Parallels, Interval) ->
-    gen_event:start_link({global, logger}),
-    gen_event:add_handler({global, logger}, file_logger, "crawler.log"),
+    logger:start(),
     OffsetList = lists:seq(1, Max, Incr),
     gen_server:start_link(
       {global, crawl_scheduler_server},
@@ -23,20 +22,23 @@ start_server(Incr, Max, Parallels, Interval) ->
     Command = spawn(?MODULE, command, [[]]),
     Kicker = timer:send_interval(Interval * 1000, Command, crawl),
     Command ! {set_kicker, Kicker},
-    io:format("Crawl server started.~n", []),
+    logger:log("Crawl server started."),
     {started, Command}.
 
 command(State) ->
     receive
         {set_kicker, Kicker} ->
+            logger:log("Receive: {set_kicker, ~p}", [Kicker]),
             command([{kicker, Kicker} | State]);
         crawl ->
-            io:format("~p~n", [crawl()]),
+            logger:log("Receive: crawl"),
+            crawl(),
             command(State);
         exit ->
+            logger:log("Receive: exit"),
             {kicker, Kicker} = lists:keyfind(kicker, 1, State),
             timer:cancel(Kicker),
-            io:format("~p~n", [stop()])
+            stop()
     end.
 
 %% Exported functions for the OTP.
@@ -45,13 +47,9 @@ init({Incr, Parallels, OffsetList}) ->
 
 handle_cast(crawl,
             {Incr, Parallels, OffsetList, [PageID|Tail]}) ->
-    log(io_lib:format(
-          "Starting crawl. ~p - ~p",
-          [PageID, PageID + Incr - 1])),
+    logger:log("Starting crawl. ~p - ~p", [PageID, PageID + Incr - 1]),
     crawler:start(PageID, Incr, Parallels),
-    log(io_lib:format(
-          "Finish crawl. ~p - ~p",
-          [PageID, PageID + Incr - 1])),
+    logger:log("Finish crawl. ~p - ~p", [PageID, PageID + Incr - 1]),
     case Tail of
         [] ->
             {noreply,
@@ -65,17 +63,16 @@ handle_call(stop, {_From, _Ref}, State) ->
     {stop, "Terminated by client", State}.
 
 terminate(Reason, _State) ->
-    gen_event:delete_handler({global, logger}, file_logger, []),
-    io:format("~p~n", [Reason]),
+    logger:log("crawl_scheduler:terminate, Reason=~p", [Reason]),
+    logger:stop(),
     ok.
 
 %% Internal functions
 
 crawl() ->
+    logger:log("crawl_scheduler:crawl() called."),
     gen_server:cast({global, crawl_scheduler_server}, crawl).
 
 stop() ->
+    logger:log("crawl_scheduler:stop() called."),
     gen_server:call({global, crawl_scheduler_server}, stop).
-
-log(Message) ->
-    gen_event:notify({global, logger}, Message).
