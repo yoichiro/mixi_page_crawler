@@ -8,7 +8,8 @@
 -export([init/1,
          terminate/2,
          handle_call/3,
-         handle_cast/2]).
+         handle_cast/2,
+         handle_info/2]).
 
 %% Exported functions for a client.
 start_server(Incr, Max, Parallels, Interval) ->
@@ -61,6 +62,10 @@ handle_cast(crawl,
 
 handle_call(stop, {_From, _Ref}, State) ->
     {stop, "Terminated by client", State}.
+
+handle_info(Info, State) ->
+    logger:log("crawl_scheduler:handle_info(~p) called.", [Info]),
+    {norely, State}.
 
 terminate(Reason, _State) ->
     logger:log("crawl_scheduler:terminate, Reason=~p", [Reason]),
