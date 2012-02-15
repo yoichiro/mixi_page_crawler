@@ -65,7 +65,7 @@ handle_call(stop, {_From, _Ref}, State) ->
 
 handle_info(Info, State) ->
     logger:log("crawl_scheduler:handle_info(~p) called.", [Info]),
-    {norely, State}.
+    {noreply, State}.
 
 terminate(Reason, _State) ->
     logger:log("crawl_scheduler:terminate, Reason=~p", [Reason]),
