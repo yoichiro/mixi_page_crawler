@@ -18,11 +18,12 @@ get_recent_page_feed_page(Url) ->
     case httpc:request(
            get,
            {Url, []},
-           [],
+           [{timeout, 10000}],
            []) of
         {ok, {{_, Status, _}, _, Body}} ->
             {Status, Body};
-        _ ->
+        Any ->
+            logger:log("fetcher: Response status was not 200. ~p", [Any]),
             error
     end.
 
